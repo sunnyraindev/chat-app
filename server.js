@@ -8,8 +8,8 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-// MongoDB connection
-mongoose.connect('mongodb://localhost:27017/chatapp');
+const mongoURI = process.env.MONGO_URI
+mongoose.connect(mongoURI);
 const db = mongoose.connection;
 
 // Handle MongoDB connection errors
