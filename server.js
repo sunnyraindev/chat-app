@@ -61,6 +61,16 @@ io.on('connection', (socket) => {
         try {
             await newMessage.save();
             io.emit('message', newMessage);
+
+            // Check if message count exceeds 500
+            const messageCount = await Message.countDocuments();
+            if (messageCount > 500) {
+                // Find and delete the oldest message(s)
+                const oldestMessages = await Message.find().sort({ timestamp: 1 }).limit(messageCount - 500);
+                for (let msg of oldestMessages) {
+                    await msg.remove();
+                }
+            }
         } catch (err) {
             console.error(err);
         }
