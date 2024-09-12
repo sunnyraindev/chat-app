@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instant Messaging</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket = io();
+        let screenName = '';
+
+        // Set or change the screen name dynamically
+        function setScreenName() {
+            screenName = document.getElementById('screenName').value;
+        }
+
+        // Send message to server
+        function sendMessage() {
+            const message = document.getElementById('message').value;
+            if (message && screenName) {
+                socket.emit('message', { message, screenName });
+                document.getElementById('message').value = '';
+                console.log('Message sent');
+            }
+        }
+
+        // Listen for incoming messages and append them to the chat
+        socket.on('message', (data) => {
+            const messageContainer = document.getElementById('messages');
+            const newMessage = document.createElement('li');
+            newMessage.textContent = `${data.screenName} (${new Date(data.timestamp).toLocaleTimeString()}): ${data.message}`;
+            messageContainer.appendChild(newMessage);
+        });
+
+        // Load chat history when the page is loaded
+        socket.on('chatHistory', (messages) => {
+            const messageContainer = document.getElementById('messages');
+            messageContainer.innerHTML = ''; // Clear current messages
+            messages.forEach((msg) => {
+                const newMessage = document.createElement('li');
+                newMessage.textContent = `${msg.screenName} (${new Date(msg.timestamp).toLocaleTimeString()}): ${msg.message}`;
+                messageContainer.appendChild(newMessage);
+            });
+        });
+
+        // Load chat history when the page is reloaded
+        window.onload = () => {
+            socket.emit('requestHistory');
+        };
+
+        // Send message when "Enter" key is pressed in the message input
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('message').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Chat</h1>
+    <ul id="messages"></ul>
+    <input type="text" id="message" placeholder="Type a message" />
+    <button onclick="sendMessage()">Send</button>
+    <br />
+    <input type="text" id="screenName" placeholder="Enter your display name" />
+    <button onclick="setScreenName()">Set name</button>
+</body>
+</html>
