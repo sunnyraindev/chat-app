@@ -9,12 +9,15 @@
     <script>
         let socket = io();
         let screenName = '';
-
+    
         // Set or change the screen name dynamically
         function setScreenName() {
             screenName = document.getElementById('screenName').value;
+            if (!screenName) {
+                alert('Please enter a display name.');
+            }
         }
-
+    
         // Send message to server
         function sendMessage() {
             const message = document.getElementById('message').value;
@@ -22,9 +25,11 @@
                 socket.emit('message', { message, screenName });
                 document.getElementById('message').value = '';
                 console.log('Message sent');
+            } else if (!screenName) {
+                alert('Please set a display name first.');
             }
         }
-
+    
         // Listen for incoming messages and append them to the chat
         socket.on('message', (data) => {
             const messageContainer = document.getElementById('messages');
@@ -32,7 +37,7 @@
             newMessage.textContent = `${data.screenName} (${new Date(data.timestamp).toLocaleTimeString()}): ${data.message}`;
             messageContainer.appendChild(newMessage);
         });
-
+    
         // Load chat history when the page is loaded
         socket.on('chatHistory', (messages) => {
             const messageContainer = document.getElementById('messages');
@@ -43,20 +48,18 @@
                 messageContainer.appendChild(newMessage);
             });
         });
-
-        // Load chat history when the page is reloaded
+    
+        // Initialize event listeners after the page loads
         window.onload = () => {
             socket.emit('requestHistory');
-        };
-
-        // Send message when "Enter" key is pressed in the message input
-        document.addEventListener('DOMContentLoaded', () => {
+    
+            // Attach "Enter" keypress event listener after DOM is fully loaded
             document.getElementById('message').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     sendMessage();
                 }
             });
-        });
+        };
     </script>
 </head>
 <body>
