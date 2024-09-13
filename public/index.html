@@ -9,61 +9,57 @@
     <script>
         let socket = io();
         let screenName = '';
-    
-        // Set or change the screen name dynamically
+
         function setScreenName() {
             screenName = document.getElementById('screenName').value;
-            if (!screenName) {
-                alert('Please enter a display name.');
-            }
         }
-    
-        // Send message to server
+
         function sendMessage() {
             const message = document.getElementById('message').value;
             if (message && screenName) {
                 socket.emit('message', { message, screenName });
                 document.getElementById('message').value = '';
                 console.log('Message sent');
-            } else if (!screenName) {
-                alert('Please set a display name first.');
             }
         }
-    
-        // Listen for incoming messages and append them to the chat
+
         socket.on('message', (data) => {
             const messageContainer = document.getElementById('messages');
             const newMessage = document.createElement('li');
             newMessage.textContent = `${data.screenName} (${new Date(data.timestamp).toLocaleTimeString()}): ${data.message}`;
             messageContainer.appendChild(newMessage);
         });
-    
-        // Load chat history when the page is loaded
+
         socket.on('chatHistory', (messages) => {
             const messageContainer = document.getElementById('messages');
-            messageContainer.innerHTML = ''; // Clear current messages
+            messageContainer.innerHTML = '';
             messages.forEach((msg) => {
                 const newMessage = document.createElement('li');
                 newMessage.textContent = `${msg.screenName} (${new Date(msg.timestamp).toLocaleTimeString()}): ${msg.message}`;
                 messageContainer.appendChild(newMessage);
             });
         });
-    
-        // Initialize event listeners after the page loads
+
+        socket.on('onlineUsers', (count) => {
+            document.getElementById('onlineCount').textContent = `Online Users: ${count}`;
+        });
+
         window.onload = () => {
             socket.emit('requestHistory');
-    
-            // Attach "Enter" keypress event listener after DOM is fully loaded
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('message').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     sendMessage();
                 }
             });
-        };
+        });
     </script>
 </head>
 <body>
     <h1>Chat</h1>
+    <div id="onlineCount">Online Users: 0</div>
     <ul id="messages"></ul>
     <input type="text" id="message" placeholder="Type a message" />
     <button onclick="sendMessage()">Send</button>
