@@ -9,28 +9,15 @@
     <script>
         let socket = io();
         let screenName = '';
-        let password = '';
 
         function setScreenName() {
             screenName = document.getElementById('screenName').value;
-
-            // Check if screen name is protected and show password field if necessary
-            const protectedNames = ['Admin', 'Moderator'];
-            if (protectedNames.includes(screenName)) {
-                document.getElementById('passwordSection').style.display = 'block';
-            } else {
-                document.getElementById('passwordSection').style.display = 'none';
-            }
-        }
-
-        function setPassword() {
-            password = document.getElementById('password').value;
         }
 
         function sendMessage() {
             const message = document.getElementById('message').value;
             if (message && screenName) {
-                socket.emit('message', { message, screenName, password });
+                socket.emit('message', { message, screenName });
                 document.getElementById('message').value = '';
                 console.log('Message sent');
             }
@@ -41,10 +28,6 @@
             const newMessage = document.createElement('li');
             newMessage.textContent = `${data.screenName} (${new Date(data.timestamp).toLocaleTimeString()}): ${data.message}`;
             messageContainer.appendChild(newMessage);
-        });
-
-        socket.on('messageError', (errorMsg) => {
-            alert(errorMsg);  // Notify the user if there's an error
         });
 
         socket.on('chatHistory', (messages) => {
@@ -81,9 +64,7 @@
     <input type="text" id="message" placeholder="Type a message" />
     <button onclick="sendMessage()">Send</button>
     <br />
-    <input type="text" id="screenName" placeholder="Enter your display name" oninput="setScreenName()" />
-    <div id="passwordSection" style="display:none;">
-        <input type="password" id="password" placeholder="Enter password" oninput="setPassword()" />
-    </div>
+    <input type="text" id="screenName" placeholder="Enter your display name" />
+    <button onclick="setScreenName()">Set name</button>
 </body>
 </html>
